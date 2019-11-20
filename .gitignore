@@ -1,0 +1,18 @@
+*.log
+.env
+
+# NodeJS
+node_modules
+
+# coverage
+.nyc_output
+coverage
+
+# WebStorm
+.idea/
+
+#VSCODE
+.vscode
+
+# macOS
+.DS_STORE
