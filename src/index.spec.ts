@@ -1,5 +1,11 @@
-import { sum } from './index'
+import { composeReducers } from './index'
 
-test("Sum", () => {
-    expect(sum(1, 2)).toBe(3)
+test("Combine reducer", () => {
+    const state = { x: 10.5 }
+    const action = { type: 'A', value: 2 }
+    const reducer = composeReducers(
+        (state, action) => ({ x: state.x + action.value }),
+        (state, action) => ({ x: state.x * action.value })
+    )
+    expect(reducer(state, action)).toEqual({ x: 23 })
 })
