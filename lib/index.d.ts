@@ -1,15 +1,10 @@
-declare type reducerType = (state: any, action: any) => any;
+import { AnyAction } from "./types";
 export declare const EMPTY_OBJECT: Readonly<{}>;
 export declare const EMPTY_ARRAY: readonly never[];
-export declare const composeReducers: (...reducers: reducerType[]) => (state: any, action: any) => any;
-export declare const reducerWithPath: (reducer: reducerType, getPath: (arg: any) => (string | number)[]) => (state: any, action: any) => any;
-export declare const commonActionCreator: (module: string) => (name: string, payloadValidator?: ((data: any) => void) | undefined, metaValidator?: ((data: any) => void) | undefined) => {
-    (payload: any, meta: void | object): {
-        type: string;
-        payload: any;
-        meta: void | object;
-    };
+declare type Validator = (data: any) => void;
+declare type ActionCreator = {
+    (payload: any, meta: object | void): AnyAction;
     type: string;
-    toString(): string;
 };
+export declare const commonActionCreator: (module: string) => (name: string, payloadValidator?: Validator | undefined, metaValidator?: Validator | undefined) => ActionCreator;
 export {};
