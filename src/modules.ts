@@ -1,11 +1,9 @@
+import * as T from 'runtypes'
 import { AnyAction } from "./types"
 
-export const EMPTY_OBJECT = Object.freeze({})
-export const EMPTY_ARRAY = Object.freeze([])
-
 type Validator = (data: any) => void
-type ActionCreator = {
-    (payload: any, meta: object | void): AnyAction,
+type ActionCreator<P = any> = {
+    (payload: P, meta: object | void): AnyAction,
     type: string
 }
 export const commonActionCreator = (module: string) =>
