@@ -1,8 +1,6 @@
 import * as T from 'runtypes'
 import { actionGuard, notEmptyStringGuard, pathGuard, Reducer, ReducersMapObject, AnyAction, idGuard } from "./types"
 import * as R from "ramda"
-import { EMPTY_OBJECT } from "./index"
-
 export const composeReducers = (...reducers: Reducer[]): Reducer => (state, action) =>
     reducers.reduceRight((curState, reducer) => reducer(curState, action), state)
 
@@ -35,5 +33,5 @@ export const reducerWithPath = (initialState: any, getPath: GetPathFunction, red
             const inner = R.path(path, state)
             return R.assocPath(path, reducer(inner, action), state)
         }
-        return state || EMPTY_OBJECT
+        return state || {}
     }

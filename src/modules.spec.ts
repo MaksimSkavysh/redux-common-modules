@@ -1,4 +1,4 @@
-import { commonActionCreator } from './index'
+import { commonActionCreator } from './modules'
 
 test("Test commonActionCreator reducer", () => {
     const payloadValidator = jest.fn((state, action) => true)
