@@ -1,27 +1,27 @@
 import * as T from 'runtypes';
 import { ActionCreator } from "./types";
 declare type Validator = (data: any) => void;
-export declare const commonActionCreator: (module: string) => (name: string, payloadValidator?: T.Runtype<unknown> | Validator | undefined, metaValidator?: T.Runtype<unknown> | Validator | undefined) => ActionCreator<any>;
+export declare const commonActionCreator: (module: string) => (name: string, payloadValidator?: T.Runtype<unknown> | Validator | undefined, metaValidator?: T.Runtype<unknown> | Validator | undefined) => ActionCreator<any, void | object>;
 export declare const commonModule: (params: {
     module: string;
     initialState: any;
     normalize?: boolean | undefined;
 }) => {
     add: ActionCreator<{
-        id: string | number;
-    } & {
-        value: unknown;
+        position: number | undefined;
+        value: {};
+        id: string;
     } & {
         position?: number | undefined;
-    }>;
-    remove: ActionCreator<any>;
-    patch: ActionCreator<any>;
-    set: ActionCreator<any>;
-    reset: ActionCreator<any>;
-    patchPath: ActionCreator<any>;
-    assocPath: ActionCreator<any>;
-    dissocPath: ActionCreator<any>;
-    setOrder: ActionCreator<any>;
-    swapItems: ActionCreator<any>;
+    }, void | object>;
+    remove: ActionCreator<any, void | object>;
+    patch: ActionCreator<any, void | object>;
+    set: ActionCreator<any, void | object>;
+    reset: ActionCreator<any, void | object>;
+    patchPath: ActionCreator<any, void | object>;
+    assocPath: ActionCreator<any, void | object>;
+    dissocPath: ActionCreator<any, void | object>;
+    setOrder: ActionCreator<any, void | object>;
+    swapItems: ActionCreator<any, void | object>;
 };
 export {};

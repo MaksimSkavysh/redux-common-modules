@@ -5,8 +5,12 @@ export interface Action<T = any> {
 export interface AnyAction extends Action {
     [extraProps: string]: any;
 }
-export declare type ActionCreator<P = any> = {
-    (payload: P, meta: object | void): AnyAction;
+export interface ModuleAction<P = any, M = any> extends AnyAction {
+    payload: P;
+    meta?: M;
+}
+export declare type ActionCreator<P = any, M = object | void> = {
+    (payload: P, meta?: M): ModuleAction<P, M>;
     type: string;
 };
 export declare type Reducer<S = any, A extends Action = AnyAction> = (state: S | undefined, action: A) => S;

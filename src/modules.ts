@@ -1,12 +1,17 @@
 import * as T from 'runtypes'
 import * as R from 'ramda'
-import { ActionCreator } from "./types"
+import { ActionCreator, AnyAction, ModuleAction } from "./types"
 import { createReducer } from "./reducers"
 
 type Validator = (data: any) => void
-
-function isRuntype(v: Validator | T.Runtype): v is T.Runtype {
-    return (v as T.Runtype).check !== undefined;
+const validate = (data: any, validator?: Validator | T.Runtype) => {
+    if (validator) {
+        if ((validator as T.Runtype).check) {
+            (validator as T.Runtype).check(data)
+        } else {
+            (validator as Validator)(data)
+        }
+    }
 }
 
 export const commonActionCreator = (module: string) =>
@@ -17,12 +22,8 @@ export const commonActionCreator = (module: string) =>
     ): ActionCreator => {
         const type = `${module}/${name}`
         const ac: ActionCreator = (payload, meta) => {
-            if (payloadValidator) {
-                isRuntype(payloadValidator) ? payloadValidator.check(payload) : payloadValidator(payload)
-            }
-            if (metaValidator) {
-                isRuntype(metaValidator) ? metaValidator.check(meta) : metaValidator(meta)
-            }
+            validate(payload, payloadValidator)
+            validate(meta, metaValidator)
             return { type, payload, meta }
         }
         ac.type = type
@@ -34,30 +35,26 @@ export const commonActionCreator = (module: string) =>
 // Trivial types
 const check = (guard: T.Runtype) => (data: any) => guard.check(data)
 
-const idGuard = T.String.withConstraint(s => s.length > 0 || 'Empty id').Or(T.Number)
-const pathGuard = T.Array(idGuard).withConstraint(a => a.length > 0 || 'path with length 0 is not allowed')
-const positionGuard = T.Number
-const valueGuard = T.Unknown
-
-type Id = T.Static<typeof idGuard>
-type Path = T.Static<typeof pathGuard>
-type Position = T.Static<typeof positionGuard>
-type Value = T.Static<typeof valueGuard>
+const id = T.String.withConstraint(s => s.length > 0 || 'Empty id')
+const pathGuard = T.Array(id).withConstraint(a => a.length > 0 || 'path with length 0 is not allowed')
+const positionGuard = T.Number.Or(T.Undefined)
+const valueGuard = T.Record({})
 
 // Composite types
-const withIdGuard = T.Record({ id: idGuard })
-const withPathGuard = T.Record({ path: pathGuard })
-const withValueGuard = T.Record({ value: valueGuard })
-const withPositionGuard = T.Partial({ position: positionGuard })
+const withIdGuard = { id }
+const withPathGuard = { path: pathGuard }
+const withValueGuard = { value: valueGuard }
+const withPositionGuard = { position: positionGuard }
 
-const AddGuard = withIdGuard.And(withValueGuard).And(withPositionGuard)
-type AddPayload = ActionCreator<T.Static<typeof AddGuard>>
+const AddGuard = T.Record({ ...withIdGuard, ...withValueGuard, ...withPositionGuard })
+    .And(T.Partial(withPositionGuard))
+type AddPayload = T.Static<typeof AddGuard>
 
 export const commonModule = (params: { module: string, initialState: any, normalize?: boolean }) => {
     const { module, initialState, normalize = false } = params
     const moduleActions = commonActionCreator(module)
 
-    const add: AddPayload = moduleActions('ADD', AddGuard)
+    const add: ActionCreator<AddPayload> = moduleActions('ADD', AddGuard)
     const remove = moduleActions('REMOVE')
     const patch = moduleActions('PATCH')
     const set = moduleActions('SET')
@@ -71,10 +68,10 @@ export const commonModule = (params: { module: string, initialState: any, normal
     const swapItems = moduleActions('MOVE_ORDER')
 
     const byIdReducer = createReducer(initialState, {
-        // [add.type]: (state: typeof initialState, { payload }) => {
-        //     const data = idValueType.check(payload)
-        //     return R.assoc(data.id, { ...data.value, id: data.id }, state)
-        // },
+        [add.type]: (state, action) => {
+            const data: AddPayload = action.payload
+            return R.assoc(data.id, { ...data.value, id: data.id }, state)
+        },
         // [remove]: (state, { payload: { id } }) => {
         //     pathType.check(ids)
         //     return R.omit(ids, state)
