@@ -8,6 +8,12 @@ export interface AnyAction extends Action {
     [extraProps: string]: any
 }
 
+export type ActionCreator<P = any> = {
+    (payload: P, meta: object | void): AnyAction,
+    type: string
+}
+
+
 export type Reducer<S = any, A extends Action = AnyAction> = (
     state: S | undefined,
     action: A
@@ -18,11 +24,3 @@ export type ReducersMapObject<S = any, A extends Action = AnyAction> = {
 }
 
 export const notEmptyStringGuard = T.String.withConstraint(s => s.length > 0)
-
-export const actionGuard = T.Record({ type: notEmptyStringGuard })
-
-export const idGuard = T.String
-    .withConstraint(s => s.length > 0 || 'Empty string could not be Id').Or(T.Number)
-
-export const pathGuard = T.Array(idGuard)
-    .withConstraint(a => a.length > 0 || 'Path with length 0 is not allowed')

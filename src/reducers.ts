@@ -1,5 +1,5 @@
 import * as T from 'runtypes'
-import { actionGuard, notEmptyStringGuard, pathGuard, Reducer, ReducersMapObject, AnyAction, idGuard } from "./types"
+import { notEmptyStringGuard, Reducer, ReducersMapObject, AnyAction } from "./types"
 import * as R from "ramda"
 export const composeReducers = (...reducers: Reducer[]): Reducer => (state, action) =>
     reducers.reduceRight((curState, reducer) => reducer(curState, action), state)
@@ -11,7 +11,7 @@ export const createReducer = (initialState: any, reducersMap: ReducersMapObject)
         }
     })
     return (state, action) => {
-        if (actionGuard.guard(action) && reducersMap[action.type]) {
+        if (action.type && reducersMap[action.type]) {
             return reducersMap[action.type](state, action)
         }
         return state
@@ -21,8 +21,11 @@ export const createReducer = (initialState: any, reducersMap: ReducersMapObject)
 type Path = (string | number)[] | string
 type GetPathFunction = (arg: AnyAction) => Path
 const pathCheck = (a: Path) => a.length > 0 || 'Path with length 0 is not allowed'
-export const reducerPathGuard = T.String.withConstraint(pathCheck)
+const idGuard = T.String
+    .withConstraint(s => s.length > 0 || 'Empty string could not be Id').Or(T.Number)
+const reducerPathGuard = T.String.withConstraint(pathCheck)
     .Or(T.Array(idGuard).withConstraint(pathCheck))
+
 export const reducerWithPath = (initialState: any, getPath: GetPathFunction, reducer: Reducer): Reducer =>
     (state, action) => {
         let path = getPath(action)
