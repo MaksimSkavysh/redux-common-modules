@@ -6,8 +6,8 @@ export declare const commonModule: (params: {
 }) => {
     reducer: import("./types").Reducer<any, import("./types").AnyAction>;
     add: ActionCreator<{
-        value: {};
         id: string;
+        value: {};
     } & {
         position?: number | undefined;
     }, void | object>;
