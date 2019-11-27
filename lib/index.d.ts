@@ -1,2 +1,2 @@
 export { composeReducers, createReducer, reducerWithPath, } from './reducers';
-export { commonActionCreator, } from './modules';
+export { commonActionCreator, } from './actionCreators';

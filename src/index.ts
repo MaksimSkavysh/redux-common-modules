@@ -5,4 +5,4 @@ export {
 } from './reducers'
 export {
     commonActionCreator,
-} from './modules'
+} from './actionCreators'
