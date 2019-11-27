@@ -33,49 +33,50 @@ export const commonActionCreator = (module: string) =>
 
 
 // Trivial types
-const check = (guard: T.Runtype) => (data: any) => guard.check(data)
-
-const id = T.String.withConstraint(s => s.length > 0 || 'Empty id')
-const pathGuard = T.Array(id).withConstraint(a => a.length > 0 || 'path with length 0 is not allowed')
+const idGuard = T.String.withConstraint(s => s.length > 0 || 'Empty id')
+const pathGuard = T.Array(idGuard).withConstraint(a => a.length > 0 || 'path with length 0 is not allowed')
 const positionGuard = T.Number.Or(T.Undefined)
 const valueGuard = T.Record({})
 
 // Composite types
-const withIdGuard = { id }
+const withIdGuard = { id: idGuard }
 const withPathGuard = { path: pathGuard }
 const withValueGuard = { value: valueGuard }
 const withPositionGuard = { position: positionGuard }
 
-const AddGuard = T.Record({ ...withIdGuard, ...withValueGuard, ...withPositionGuard })
+const AddGuard = T.Record({ ...withIdGuard, ...withValueGuard })
     .And(T.Partial(withPositionGuard))
 type AddPayload = T.Static<typeof AddGuard>
+
+const RemoveGuard = T.Record(withIdGuard)
+type RemovePayload = T.Static<typeof RemoveGuard>
 
 export const commonModule = (params: { module: string, initialState: any, normalize?: boolean }) => {
     const { module, initialState, normalize = false } = params
     const moduleActions = commonActionCreator(module)
 
     const add: ActionCreator<AddPayload> = moduleActions('ADD', AddGuard)
-    const remove = moduleActions('REMOVE')
-    const patch = moduleActions('PATCH')
-    const set = moduleActions('SET')
-    const reset = moduleActions('RESET')
-
-    const patchPath = moduleActions('PATCH_PATH')
-    const assocPath = moduleActions('SET_PATH')
-    const dissocPath = moduleActions('RESET_PATH')
-
-    const setOrder = moduleActions('SET_ORDER')
-    const swapItems = moduleActions('MOVE_ORDER')
+    const remove: ActionCreator<RemovePayload> = moduleActions('REMOVE', RemoveGuard)
+    // const patch = moduleActions('PATCH')
+    // const set = moduleActions('SET')
+    // const reset = moduleActions('RESET')
+    //
+    // const patchPath = moduleActions('PATCH_PATH')
+    // const assocPath = moduleActions('SET_PATH')
+    // const dissocPath = moduleActions('RESET_PATH')
+    //
+    // const setOrder = moduleActions('SET_ORDER')
+    // const swapItems = moduleActions('MOVE_ORDER')
 
     const byIdReducer = createReducer(initialState, {
         [add.type]: (state, action) => {
             const data: AddPayload = action.payload
             return R.assoc(data.id, { ...data.value, id: data.id }, state)
         },
-        // [remove]: (state, { payload: { id } }) => {
-        //     pathType.check(ids)
-        //     return R.omit(ids, state)
-        // },
+        [remove.type]: (state, { payload }) => {
+            const data: RemovePayload = payload
+            return R.dissoc(data.id, state)
+        },
         // [patch]: (state, { payload }) => {
         //     const data = idValueType.check(payload)
         //     return R.over(R.lensProp(data.id), R.mergeLeft(data.value), state)
@@ -115,16 +116,16 @@ export const commonModule = (params: { module: string, initialState: any, normal
     // const reducer = normalize ? combineReducers({ byId: byIdReducer, order: orderReducer }) : byIdReducer
     //
     return {
-        // reducer,
+        reducer: byIdReducer,
         add,
         remove,
-        patch,
-        set,
-        reset,
-        patchPath,
-        assocPath,
-        dissocPath,
-        setOrder,
-        swapItems,
+        // patch,
+        // set,
+        // reset,
+        // patchPath,
+        // assocPath,
+        // dissocPath,
+        // setOrder,
+        // swapItems,
     }
 }
