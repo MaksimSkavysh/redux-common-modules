@@ -90,7 +90,7 @@ export const commonModule = (params: { module: string, initialState: any, normal
             T.Record({
                 from: T.Number.withConstraint(inCurrentRange),
                 to: T.Number.withConstraint(inCurrentRange),
-            })
+            }).check(data)
             return R.move(data.from, data.to, state)
         },
     })
