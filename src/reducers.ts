@@ -10,7 +10,7 @@ export const createReducer = (initialState: any, reducersMap: ReducersMapObject)
             throw new Error('Wrong handlers map type, should be: { [actionType]: reducerFunction }')
         }
     })
-    return (state, action) => {
+    return (state = initialState, action) => {
         if (action.type && reducersMap[action.type]) {
             return reducersMap[action.type](state, action)
         }

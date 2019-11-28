@@ -1,10 +1,14 @@
-import { ActionCreator } from "./types";
+import { ActionCreator, AnyAction, Reducer } from "./types";
+declare type SwapItemsPayload = {
+    from: number;
+    to: number;
+};
 export declare const commonModule: (params: {
     module: string;
     initialState: any;
     normalize?: boolean | undefined;
 }) => {
-    reducer: import("./types").Reducer<any, import("./types").AnyAction>;
+    reducer: Reducer<any, AnyAction>;
     add: ActionCreator<{
         id: string;
         value: {};
@@ -14,4 +18,13 @@ export declare const commonModule: (params: {
     remove: ActionCreator<{
         id: string;
     }, void | object>;
+    patch: ActionCreator<{
+        id: string;
+        value: {};
+    }, void | object>;
+    set: ActionCreator<any, void | object>;
+    reset: ActionCreator<any, void | object>;
+    setOrder: ActionCreator<string[], void | object>;
+    swapItems: ActionCreator<SwapItemsPayload, void | object>;
 };
+export {};

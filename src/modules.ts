@@ -1,8 +1,11 @@
 import * as T from 'runtypes'
 import * as R from 'ramda'
-import { ActionCreator } from "./types"
+import { ActionCreator, AnyAction, Reducer } from "./types"
 import { createReducer } from "./reducers"
 import { commonActionCreator } from "./actionCreators"
+import { combineReducers } from "redux"
+
+const inRange = R.curry((start, end, index) => start <= index && index <= end)
 
 // Trivial types
 const idGuard = T.String.withConstraint(s => s.length > 0 || 'Empty id')
@@ -27,13 +30,18 @@ type RemovePayload = T.Static<typeof RemoveGuard>
 const PatchGuard = T.Record(witIdValue)
 type PatchPayload = T.Static<typeof PatchGuard>
 
+const SetOrderGuard = T.Array(idGuard)
+type SetOrderPayload = T.Static<typeof SetOrderGuard>
+
+type SwapItemsPayload = { from: number, to: number }
+
 export const commonModule = (params: { module: string, initialState: any, normalize?: boolean }) => {
     const { module, initialState, normalize = false } = params
     const moduleActions = commonActionCreator(module)
 
     const add: ActionCreator<AddPayload> = moduleActions('ADD', AddGuard)
     const remove: ActionCreator<RemovePayload> = moduleActions('REMOVE', RemoveGuard)
-    const patch = moduleActions('PATCH', pathGuard)
+    const patch: ActionCreator<PatchPayload> = moduleActions('PATCH', PatchGuard)
     const set = moduleActions('SET')
     const reset = moduleActions('RESET')
     //
@@ -41,8 +49,8 @@ export const commonModule = (params: { module: string, initialState: any, normal
     // const assocPath = moduleActions('SET_PATH')
     // const dissocPath = moduleActions('RESET_PATH')
     //
-    // const setOrder = moduleActions('SET_ORDER')
-    // const swapItems = moduleActions('MOVE_ORDER')
+    const setOrder: ActionCreator<SetOrderPayload> = moduleActions('SET_ORDER', SetOrderGuard)
+    const swapItems: ActionCreator<SwapItemsPayload> = moduleActions('MOVE_ORDER')
 
     const byIdReducer = createReducer(initialState, {
         [add.type]: (state, action) => {
@@ -74,35 +82,42 @@ export const commonModule = (params: { module: string, initialState: any, normal
     })
     //
     const orderReducer = normalize && createReducer(Object.keys(initialState), {
-        [add.type]: (state, { payload: { id, position = 0 } }) => R.insert(position, id, state),
+        [add.type]: (state, { payload: { id, position = 0 } }) => {
+            const checkPosition = (p: number) =>  p === 0 || (-1 <= p && p < state.length)
+            T.Number.withConstraint(p => checkPosition(p)
+                || 'Position should be in range from -1 to state.length -1').check(position)
+            return R.insert(position, id, state)
+        },
         [remove.type]: (state, { payload: { id } }) => state.filter((item: any) => item !== id),
         [set.type]: (_state, { payload }) => Object.keys(payload),
         [reset.type]: R.always(Object.keys(initialState)),
-        //
-        // [setOrder]: (_state, { payload }) => T.Array(idType).check(payload),
-        // [swapItems]: (state, { payload: { from, to } }) => {
-        //     const inCurrentRange = inRange(0, state.length)
-        //     T.Record({
-        //         from: T.Number.withConstraint(inCurrentRange),
-        //         to: T.Number.withConstraint(inCurrentRange),
-        //     })
-        //     return R.move(from, to, state)
-        // },
+        [setOrder.type]: (_state, { payload }) => payload,
+        [swapItems.type]: (state, { payload }) => {
+            const data: SwapItemsPayload = payload
+            const inCurrentRange = inRange(0, state.length)
+            T.Record({
+                from: T.Number.withConstraint(inCurrentRange),
+                to: T.Number.withConstraint(inCurrentRange),
+            })
+            return R.move(data.from, data.to, state)
+        },
     })
-    //
-    // const reducer = normalize ? combineReducers({ byId: byIdReducer, order: orderReducer }) : byIdReducer
-    //
+
+    const reducer: Reducer = normalize && orderReducer
+        ? combineReducers({byId: byIdReducer, order: orderReducer })
+        : byIdReducer
+
     return {
-        reducer: byIdReducer,
+        reducer,
         add,
         remove,
-        // patch,
-        // set,
-        // reset,
+        patch,
+        set,
+        reset,
         // patchPath,
         // assocPath,
         // dissocPath,
-        // setOrder,
-        // swapItems,
+        setOrder,
+        swapItems,
     }
 }
