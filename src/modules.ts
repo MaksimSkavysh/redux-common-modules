@@ -35,6 +35,9 @@ type SetOrderPayload = T.Static<typeof SetOrderGuard>
 
 type SwapItemsPayload = { from: number, to: number }
 
+const PatchDeepGuard = T.Record(witIdValue)
+type PatchDeepPayload = T.Static<typeof PatchGuard>
+
 export const commonModule = (params: { module: string, initialState: any, normalize?: boolean }) => {
     const { module, initialState, normalize = false } = params
     const moduleActions = commonActionCreator(module)
@@ -44,10 +47,7 @@ export const commonModule = (params: { module: string, initialState: any, normal
     const patch: ActionCreator<PatchPayload> = moduleActions('PATCH', PatchGuard)
     const set = moduleActions('SET')
     const reset = moduleActions('RESET')
-    //
-    // const patchPath = moduleActions('PATCH_PATH')
-    // const assocPath = moduleActions('SET_PATH')
-    // const dissocPath = moduleActions('RESET_PATH')
+    const patchDeep: ActionCreator<PatchDeepPayload> = moduleActions('PATCH_PATH', PatchDeepGuard)
     //
     const setOrder: ActionCreator<SetOrderPayload> = moduleActions('SET_ORDER', SetOrderGuard)
     const swapItems: ActionCreator<SwapItemsPayload> = moduleActions('MOVE_ORDER')
@@ -67,20 +67,12 @@ export const commonModule = (params: { module: string, initialState: any, normal
         },
         [set.type]: (_state, { payload }) => payload,
         [reset.type]: R.always(initialState),
-
-        // [patchPath]: (state, { payload }) => {
-        //     const data = pathValueType.check(payload)
-        //     return R.over(R.lensPath(data.path), R.mergeLeft(data.value), state)
-        // },
-        // [assocPath]: (state, { payload }) => {
-        //     const data = pathValueType.check(payload)
-        //     return R.assocPath(data.path, data.value, state)
-        // },
-        // [dissocPath]: (state, { payload: { path } }) => {
-        //     R.dissocPath(pathType.check(path), state)
-        // },
+        [patchDeep.type]: (state, action) => {
+            const data: PatchDeepPayload = action.payload
+            return R.over(R.lensProp(data.id), R.mergeDeepLeft(data.value), state)
+        },
     })
-    //
+
     const orderReducer = normalize && createReducer(Object.keys(initialState), {
         [add.type]: (state, { payload: { id, position = 0 } }) => {
             const checkPosition = (p: number) =>  p === 0 || (-1 <= p && p < state.length)
@@ -114,10 +106,8 @@ export const commonModule = (params: { module: string, initialState: any, normal
         patch,
         set,
         reset,
-        // patchPath,
-        // assocPath,
-        // dissocPath,
         setOrder,
         swapItems,
+        patchDeep,
     }
 }

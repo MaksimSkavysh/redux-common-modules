@@ -26,5 +26,9 @@ export declare const commonModule: (params: {
     reset: ActionCreator<any, void | object>;
     setOrder: ActionCreator<string[], void | object>;
     swapItems: ActionCreator<SwapItemsPayload, void | object>;
+    patchDeep: ActionCreator<{
+        id: string;
+        value: {};
+    }, void | object>;
 };
 export {};

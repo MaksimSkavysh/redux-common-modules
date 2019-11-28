@@ -30,6 +30,7 @@ const {
     setOrder,
     set,
     reset,
+    patchDeep,
 } = commonModule({ module: 'TEST', initialState: {}, normalize: true })
 const store = createStore(reducer, {})
 const { getState, dispatch } = store
@@ -57,6 +58,15 @@ test("Test initial state", () => {
         byId: {
             id1: { id: "id1", name: "n1" },
             id2: { id: "id2", name: "patched_name", a: { c: 2 } },
+        },
+        order: ["id1", "id2"]
+    })
+
+    dispatch(patchDeep({ id: "id2", value: { name: "patched_name", a: { b: 1 } } }))
+    expect(getState()).toEqual({
+        byId: {
+            id1: { id: "id1", name: "n1" },
+            id2: { id: "id2", name: "patched_name", a: { c: 2, b: 1 } },
         },
         order: ["id1", "id2"]
     })
