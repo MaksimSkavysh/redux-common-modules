@@ -3,6 +3,5 @@ export {
     createReducer,
     reducerWithPath,
 } from './reducers'
-export {
-    commonActionCreator,
-} from './actionCreators'
+export { commonActionCreator } from './actionCreators'
+export { commonModule } from './modules'
