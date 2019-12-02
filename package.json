@@ -2,7 +2,7 @@
   "name": "redux-common-modules",
   "version": "0.1.0",
   "description": "Redux common modules",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "build": "rm -rf lib/ && tsc",
     "test": "jest --config jestconfig.json",
