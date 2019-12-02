@@ -1,9 +1,19 @@
 import { createStore } from 'redux'
-import { commonModule } from './modules'
+import { commonModuleNormalized, commonModule, trivialModule } from './modules'
 import { createReducer } from "./reducers"
 
+test("Test trivial module", () => {
+    const initialValue = {}
+    const { reducer, set, reset } = trivialModule('Test', initialValue)
+    const value = {}
+    const state1 = reducer({}, set(value))
+    expect(state1).toBe(value)
+    const state2 = reducer(state1, reset())
+    expect(state2).toBe(initialValue)
+})
+
 test("Test Add action", () => {
-    const { reducer, add } = commonModule({ module: 'TEST', initialState: {} })
+    const { reducer, add } = commonModule('TEST')
     const state = {}
     const payload = { id: 't1', value: { name: 't1' } }
     const action = add(payload)
@@ -31,7 +41,7 @@ const {
     set,
     reset,
     patchDeep,
-} = commonModule({ module: 'TEST', initialState: {}, normalize: true })
+} = commonModuleNormalized('TEST')
 const store = createStore(reducer, {})
 const { getState, dispatch } = store
 
@@ -45,6 +55,7 @@ test("Test initial state", () => {
     })
 
     dispatch(add({ id: 'id2', value: { name: 'n2', a: { b: 1 } }, position: -1 }))
+    add({ value: 1, id: '2' })
     expect(getState()).toEqual({
         byId: {
             id1: { id: "id1", name: "n1" },
@@ -85,7 +96,7 @@ test("Test initial state", () => {
         order: ["id1"]
     })
 
-    dispatch(reset({}))
+    dispatch(reset())
     expect(getState()).toEqual({ byId: {}, order: [] })
 
     dispatch(set({

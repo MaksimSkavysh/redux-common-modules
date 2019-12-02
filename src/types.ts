@@ -14,7 +14,7 @@ export interface ModuleAction<P = any, M = any> extends AnyAction {
 }
 
 export type ActionCreator<P = any, M = object | void> = {
-    (payload: P, meta?: M): ModuleAction<P, M>,
+    (payload?: P, meta?: M): ModuleAction<P, M>,
     type: string
 }
 

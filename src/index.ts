@@ -4,4 +4,4 @@ export {
     reducerWithPath,
 } from './reducers'
 export { commonActionCreator } from './actionCreators'
-export { commonModule } from './modules'
+export { commonModuleNormalized } from './modules'

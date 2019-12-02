@@ -10,7 +10,7 @@ export interface ModuleAction<P = any, M = any> extends AnyAction {
     meta?: M;
 }
 export declare type ActionCreator<P = any, M = object | void> = {
-    (payload: P, meta?: M): ModuleAction<P, M>;
+    (payload?: P, meta?: M): ModuleAction<P, M>;
     type: string;
 };
 export declare type Reducer<S = any, A extends Action = AnyAction> = (state: S | undefined, action: A) => S;

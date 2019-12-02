@@ -5,12 +5,27 @@ import { createReducer } from "./reducers"
 import { commonActionCreator } from "./actionCreators"
 import { combineReducers } from "redux"
 
-const inRange = R.curry((start, end, index) => start <= index && index <= end)
+export const trivialModule = (module: string, initialValue: any = null) => {
+    const moduleActions = commonActionCreator(module)
+
+    const set: ActionCreator<any> = moduleActions('SET')
+    const reset: ActionCreator<void> = moduleActions('RESET')
+    const reducer = createReducer(initialValue, {
+        [set.type]: (_, { payload }) => payload,
+        [reset.type]: () => initialValue,
+    })
+    return {
+        reducer,
+        set,
+        reset,
+    }
+}
+
 
 // Trivial types
 const idGuard = T.String.withConstraint(s => s.length > 0 || 'Empty id')
 const pathGuard = T.Array(idGuard).withConstraint(a => a.length > 0 || 'path with length 0 is not allowed')
-const positionGuard = T.Number.Or(T.Undefined)
+const positionGuard = T.Number
 const valueGuard = T.Record({})
 
 // Composite types
@@ -30,29 +45,20 @@ type RemovePayload = T.Static<typeof RemoveGuard>
 const PatchGuard = T.Record(witIdValue)
 type PatchPayload = T.Static<typeof PatchGuard>
 
-const SetOrderGuard = T.Array(idGuard)
-type SetOrderPayload = T.Static<typeof SetOrderGuard>
-
-type SwapItemsPayload = { from: number, to: number }
-
 const PatchDeepGuard = T.Record(witIdValue)
 type PatchDeepPayload = T.Static<typeof PatchGuard>
 
-export const commonModule = (params: { module: string, initialState: any, normalize?: boolean }) => {
-    const { module, initialState, normalize = false } = params
+export const commonModule = (module: string, initialState: object = {}) => {
     const moduleActions = commonActionCreator(module)
 
     const add: ActionCreator<AddPayload> = moduleActions('ADD', AddGuard)
     const remove: ActionCreator<RemovePayload> = moduleActions('REMOVE', RemoveGuard)
     const patch: ActionCreator<PatchPayload> = moduleActions('PATCH', PatchGuard)
-    const set = moduleActions('SET')
-    const reset = moduleActions('RESET')
+    const set: ActionCreator<typeof initialState> = moduleActions('SET')
+    const reset: ActionCreator<void> = moduleActions('RESET')
     const patchDeep: ActionCreator<PatchDeepPayload> = moduleActions('PATCH_PATH', PatchDeepGuard)
-    //
-    const setOrder: ActionCreator<SetOrderPayload> = moduleActions('SET_ORDER', SetOrderGuard)
-    const swapItems: ActionCreator<SwapItemsPayload> = moduleActions('MOVE_ORDER')
 
-    const byIdReducer = createReducer(initialState, {
+    const reducer = createReducer(initialState, {
         [add.type]: (state, action) => {
             const data: AddPayload = action.payload
             return R.assoc(data.id, { ...data.value, id: data.id }, state)
@@ -73,16 +79,50 @@ export const commonModule = (params: { module: string, initialState: any, normal
         },
     })
 
-    const orderReducer = normalize && createReducer(Object.keys(initialState), {
+    return {
+        reducer,
+        add,
+        remove,
+        patch,
+        set,
+        reset,
+        patchDeep,
+    }
+}
+const inRange = R.curry((start, end, index) => start <= index && index <= end)
+
+const SetOrderGuard = T.Array(idGuard)
+type SetOrderPayload = T.Static<typeof SetOrderGuard>
+
+type SwapItemsPayload = { from: number, to: number }
+
+export const commonModuleNormalized = (module: string, initialState = {}) => {
+    const moduleActions = commonActionCreator(module)
+
+    const {
+        reducer: byIdReducer,
+        add,
+        remove,
+        reset,
+        set,
+        patch,
+        patchDeep,
+    } = commonModule(module, initialState)
+
+    const setOrder: ActionCreator<SetOrderPayload> = moduleActions('SET_ORDER', SetOrderGuard)
+    const swapItems: ActionCreator<SwapItemsPayload> = moduleActions('MOVE_ORDER')
+
+    const orderReducer = createReducer(Object.keys(initialState), {
         [add.type]: (state, { payload: { id, position = 0 } }) => {
             const checkPosition = (p: number) =>  p === 0 || (-1 <= p && p < state.length)
-            T.Number.withConstraint(p => checkPosition(p)
-                || 'Position should be in range from -1 to state.length -1').check(position)
+                || 'Position should be in range from -1 to state.length -1'
+            T.Number.withConstraint(checkPosition).check(position)
             return R.insert(position, id, state)
         },
         [remove.type]: (state, { payload: { id } }) => state.filter((item: any) => item !== id),
         [set.type]: (_state, { payload }) => Object.keys(payload),
         [reset.type]: R.always(Object.keys(initialState)),
+
         [setOrder.type]: (_state, { payload }) => payload,
         [swapItems.type]: (state, { payload }) => {
             const data: SwapItemsPayload = payload
@@ -95,9 +135,10 @@ export const commonModule = (params: { module: string, initialState: any, normal
         },
     })
 
-    const reducer: Reducer = normalize && orderReducer
-        ? combineReducers({byId: byIdReducer, order: orderReducer })
-        : byIdReducer
+    const reducer: Reducer = combineReducers({
+        byId: byIdReducer,
+        order: orderReducer,
+    })
 
     return {
         reducer,

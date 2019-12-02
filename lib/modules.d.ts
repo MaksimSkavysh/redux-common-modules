@@ -1,13 +1,10 @@
 import { ActionCreator, AnyAction, Reducer } from "./types";
-declare type SwapItemsPayload = {
-    from: number;
-    to: number;
+export declare const trivialModule: (module: string, initialValue?: any) => {
+    reducer: Reducer<any, AnyAction>;
+    set: ActionCreator<any, void | object>;
+    reset: ActionCreator<void, void | object>;
 };
-export declare const commonModule: (params: {
-    module: string;
-    initialState: any;
-    normalize?: boolean | undefined;
-}) => {
+export declare const commonModule: (module: string, initialState?: object) => {
     reducer: Reducer<any, AnyAction>;
     add: ActionCreator<{
         id: string;
@@ -22,8 +19,34 @@ export declare const commonModule: (params: {
         id: string;
         value: {};
     }, void | object>;
-    set: ActionCreator<any, void | object>;
-    reset: ActionCreator<any, void | object>;
+    set: ActionCreator<object, void | object>;
+    reset: ActionCreator<void, void | object>;
+    patchDeep: ActionCreator<{
+        id: string;
+        value: {};
+    }, void | object>;
+};
+declare type SwapItemsPayload = {
+    from: number;
+    to: number;
+};
+export declare const commonModuleNormalized: (module: string, initialState?: {}) => {
+    reducer: Reducer<any, AnyAction>;
+    add: ActionCreator<{
+        id: string;
+        value: {};
+    } & {
+        position?: number | undefined;
+    }, void | object>;
+    remove: ActionCreator<{
+        id: string;
+    }, void | object>;
+    patch: ActionCreator<{
+        id: string;
+        value: {};
+    }, void | object>;
+    set: ActionCreator<object, void | object>;
+    reset: ActionCreator<void, void | object>;
     setOrder: ActionCreator<string[], void | object>;
     swapItems: ActionCreator<SwapItemsPayload, void | object>;
     patchDeep: ActionCreator<{
