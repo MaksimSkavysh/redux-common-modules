@@ -6,14 +6,14 @@ test("Test createReducer", () => {
     const action1 = { type: 'A', value: 2 }
     const action2 = { type: 'B', value: 10 }
     const reducer = createReducer(
-        { x: 0 },
+        state,
         {
             A: (state, action) => ({ x: state.x + action.value }),
             B: (state, action) => ({ x: state.x - action.value }),
         }
     )
-    expect(reducer(state, action1)).toEqual({ x: 12 })
-    expect(reducer(state, action2)).toEqual({ x: 0 })
+    expect(reducer(undefined, action1)).toEqual({ x: 12 })
+    expect(reducer(undefined, action2)).toEqual({ x: 0 })
 })
 
 test("Test createReducer wrong params", () => {
@@ -41,10 +41,10 @@ test("Test reducerWithPath basic actions", () => {
         (action) => action.path,
         (state, action) => ((state || 0) + action.value)
     )
-    const state = {}
-    expect(reducer(state, { type: 'a', path: [] })).toBe(state)
-    const action = { type: 'a', value: 2, path: ['a'] }
-    expect(reducer(state, action)).toEqual({ a: 2 })
+    const state = { a: { b: 2 } }
+    expect(reducer(state, { type: 'a', path: [], value: 2 })).toBe(state)
+    const action = { type: 'a', value: 2, path: ['a', 'b'] }
+    expect(reducer(state, action)).toEqual({ a: { b: 4 } })
 })
 
 test("Test reducerWithPath logic", () => {
