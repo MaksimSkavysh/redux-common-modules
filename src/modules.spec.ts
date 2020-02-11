@@ -2,6 +2,13 @@ import { createStore } from 'redux'
 import { commonModuleNormalized, commonModule, trivialModule } from './modules'
 import { createReducer } from "./reducers"
 
+test("Initial state should be applied", () => {
+    const { reducer } = commonModule('TEST1', { 'asd': { id: 'asd' } })
+    const store = createStore(reducer)
+    const { getState, dispatch } = store
+    expect(getState()).toEqual({ 'asd': { id: 'asd' } })
+})
+
 test("Test trivial module", () => {
     const initialValue = {}
     const { reducer, set, reset } = trivialModule('Test', initialValue)

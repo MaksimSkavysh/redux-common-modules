@@ -31,7 +31,10 @@ declare type SwapItemsPayload = {
     to: number;
 };
 export declare const commonModuleNormalized: (module: string, initialState?: {}) => {
-    reducer: Reducer<any, AnyAction>;
+    reducer: import("redux").Reducer<{
+        byId: any;
+        order: any;
+    }, import("redux").AnyAction>;
     add: ActionCreator<{
         id: string;
         value: {};

@@ -49,6 +49,7 @@ const PatchDeepGuard = T.Record(witIdValue)
 type PatchDeepPayload = T.Static<typeof PatchGuard>
 
 export const commonModule = (module: string, initialState: object = {}) => {
+    T.String.check(module)
     const moduleActions = commonActionCreator(module)
 
     const add: ActionCreator<AddPayload> = moduleActions('ADD', AddGuard)
@@ -135,7 +136,7 @@ export const commonModuleNormalized = (module: string, initialState = {}) => {
         },
     })
 
-    const reducer: Reducer = combineReducers({
+    const reducer = combineReducers({
         byId: byIdReducer,
         order: orderReducer,
     })
